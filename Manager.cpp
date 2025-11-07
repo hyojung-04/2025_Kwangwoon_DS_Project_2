@@ -186,8 +186,7 @@ void Manager::ADD_BP(string name, int dept_no, int id, int income) {
   EmployeeData *newData = new EmployeeData();
   newData->setData(name, dept_no, id, income);
   bptree->Insert(newData);
-
-  printSuccessCode("ADD_BP");
+  flog << "========ADD_BP========\n";
   flog << name << "/" << dept_no << "/" << id << "/" << income << "\n";
   flog << "====================\n\n";
 }
@@ -213,7 +212,6 @@ void Manager::SEARCH_BP_NAME(string name) {
     printErrorCode(300);
   else {
     EmployeeData *pData = it->second;
-    printSuccessCode("SEARCH_BP");
     flog << pData->getName() << "/" << pData->getDeptNo() << "/"
          << pData->getID() << "/" << pData->getIncome() << "\n";
     flog << "====================\n\n";
@@ -226,8 +224,7 @@ void Manager::SEARCH_BP_RANGE(string start, string end) {
     printErrorCode(300);
     return;
   }
-
-  printSuccessCode("SEARCH_BP");
+  flog << "========SEARCH_BP========\n";
   bptree->searchRange(start, end);
   flog << "====================\n\n";
 }
@@ -328,7 +325,7 @@ void Manager::PRINT_BP() {
     return;
   }
 
-  printSuccessCode("PRINT_BP");
+  flog << "========PRINT_BP========\n";
   bptree->searchRange("", "{");
   flog << "====================\n\n";
 }
@@ -350,8 +347,6 @@ void Manager::PRINT_ST(int n) {
     printErrorCode(600);
     return;
   }
-
-  printSuccessCode("PRINT_ST");
 }
 
 // print error message

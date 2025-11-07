@@ -4,27 +4,23 @@
 
 class EmployeeHeap {
 private:
-    int datanum;
-    EmployeeData** heapArr;
-    int maxCapacity = 10;
+  int datanum;
+  EmployeeData **heapArr;
+  int maxCapacity = 10;
 
 public:
-    EmployeeHeap() {
-        
-    }
-    ~EmployeeHeap() {
-        
-    }
-    
-    void Insert(EmployeeData* data);
-    EmployeeData* Top();
-    void Delete();
+  EmployeeHeap();
+  ~EmployeeHeap();
 
-    bool IsEmpty();
+  void Insert(EmployeeData *data);
+  EmployeeData *Top();
+  void Delete();
 
-    void UpHeap(int index);
-    void DownHeap(int index);
-    void ResizeArray();
-    int getdatanum(){ return this->datanum; }
-    EmployeeData** getheapArr(){ return this->heapArr; }
+  bool IsEmpty();
+
+  void UpHeap(int index);
+  void DownHeap(int index);
+  void ResizeArray();
+  int getdatanum() { return this->datanum; }
+  EmployeeData **getheapArr() { return this->heapArr; }
 };
