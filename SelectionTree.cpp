@@ -1,24 +1,22 @@
 #include "SelectionTree.h"
 #include <algorithm>
 #include <iostream>
-#include <queue>
 #include <vector>
 
 using namespace std;
 
-// make empty tree with 8 department runs
+// build 8 department heaps and link tree
 void SelectionTree::setTree() {
-  // 8 leaf (department heap)
   for (int i = 0; i < 8; i++) {
     run[i] = new SelectionTreeNode();
     run[i]->HeapInit();
   }
 
-  // (Winner Tree)
   vector<SelectionTreeNode *> level;
   for (int i = 0; i < 8; i++)
     level.push_back(run[i]);
 
+  // build winner tree by linking parents
   while (level.size() > 1) {
     vector<SelectionTreeNode *> next;
     for (int i = 0; i < level.size(); i += 2) {
@@ -33,11 +31,12 @@ void SelectionTree::setTree() {
     }
     level = next;
   }
-
-  root = level.front(); // set highest root
+  root = level.front();
+  rebuildTree(); // initial winner
+  updateWinner(root);
 }
 
-// insert new employee into proper heap
+// insert new data to the proper heap
 bool SelectionTree::Insert(EmployeeData *newData) {
   if (!newData)
     return false;
@@ -47,59 +46,51 @@ bool SelectionTree::Insert(EmployeeData *newData) {
   if (idx < 0 || idx >= 8)
     return false;
 
-  // insert data into department heap
+  // insert into heap
   run[idx]->getHeap()->Insert(newData);
 
-  // update winner (max income among heaps)
-  SelectionTreeNode *maxNode = nullptr;
-  int maxIncome = -1;
-
-  for (int i = 0; i < 8; i++) {
-    EmployeeHeap *h = run[i]->getHeap();
-    if (!h->IsEmpty()) {
-      EmployeeData *top = h->Top();
-      if (top->getIncome() > maxIncome) {
-        maxIncome = top->getIncome();
-        maxNode = run[i];
-      }
-    }
+  // update winners from leaf to root
+  SelectionTreeNode *cur = run[idx];
+  while (cur) {
+    updateWinner(cur);
+    cur = cur->getParent();
   }
 
-  if (maxNode) {
-    root = maxNode;
-  }
+  updateWinner(root);
 
   return true;
 }
 
-// delete top (max income) employee
+// delete top winner (root)
 bool SelectionTree::Delete() {
-  if (root == nullptr)
+  if (!root || !root->getEmployeeData())
     return false;
 
-  // delete top data in winner heap
-  EmployeeHeap *winnerHeap = root->getHeap();
-  if (winnerHeap->IsEmpty())
+  EmployeeData *topData = root->getEmployeeData();
+  if (!topData)
     return false;
 
-  winnerHeap->Delete();
+  int dept = topData->getDeptNo();
+  int idx = (dept / 100) - 1;
+  if (idx < 0 || idx >= 8)
+    return false;
 
-  // find new winner
-  SelectionTreeNode *newMax = nullptr;
-  int maxIncome = -1;
+  EmployeeHeap *h = run[idx]->getHeap();
+  if (h->IsEmpty())
+    return false;
 
-  for (int i = 0; i < 8; i++) {
-    EmployeeHeap *h = run[i]->getHeap();
-    if (!h->IsEmpty()) {
-      EmployeeData *top = h->Top();
-      if (top->getIncome() > maxIncome) {
-        maxIncome = top->getIncome();
-        newMax = run[i];
-      }
-    }
+  // remove top of heap
+  h->Delete();
+
+  // update winners up the tree
+  SelectionTreeNode *cur = run[idx];
+  while (cur) {
+    updateWinner(cur);
+    cur = cur->getParent();
   }
 
-  root = newMax;
+  updateWinner(root);
+
   return true;
 }
 
@@ -115,18 +106,16 @@ bool SelectionTree::printEmployeeData(int dept_no) {
 
   fout << "========PRINT_ST========\n";
 
-  // Copy all employees into vector
   vector<EmployeeData *> vec;
-  for (int i = 1; i <= heap->getdatanum(); i++) {
+  for (int i = 1; i <= heap->getdatanum(); i++)
     vec.push_back(heap->getheapArr()[i]);
-  }
 
-  // Sort by income descending
+  // sort by income descending
   sort(vec.begin(), vec.end(), [](EmployeeData *a, EmployeeData *b) {
     return a->getIncome() > b->getIncome();
   });
 
-  // Print sorted employees
+  // print sorted
   for (auto p : vec) {
     fout << p->getName() << "/" << p->getDeptNo() << "/" << p->getID() << "/"
          << p->getIncome() << "\n";
@@ -136,7 +125,7 @@ bool SelectionTree::printEmployeeData(int dept_no) {
   return true;
 }
 
-// choose higher income for one node
+// update one node's winner (compare left & right)
 void SelectionTree::updateWinner(SelectionTreeNode *node) {
   if (!node)
     return;
@@ -147,37 +136,36 @@ void SelectionTree::updateWinner(SelectionTreeNode *node) {
   EmployeeData *ldata = nullptr;
   EmployeeData *rdata = nullptr;
 
-  if (left && left->getHeap() && !left->getHeap()->IsEmpty())
-    ldata = left->getHeap()->Top();
-  if (right && right->getHeap() && !right->getHeap()->IsEmpty())
-    rdata = right->getHeap()->Top();
-
-  if (!ldata && !rdata) {
-    node->setEmployeeData(nullptr);
-    return;
+  if (left) {
+    if (left->getHeap() && !left->getHeap()->IsEmpty())
+      ldata = left->getHeap()->Top();
+    else
+      ldata = left->getEmployeeData();
   }
-  if (!rdata || (ldata && ldata->getIncome() >= rdata->getIncome()))
+  if (right) {
+    if (right->getHeap() && !right->getHeap()->IsEmpty())
+      rdata = right->getHeap()->Top();
+    else
+      rdata = right->getEmployeeData();
+  }
+
+  // choose higher income
+  if (!ldata && !rdata)
+    node->setEmployeeData(nullptr);
+  else if (!rdata || (ldata && ldata->getIncome() >= rdata->getIncome()))
     node->setEmployeeData(ldata);
   else
     node->setEmployeeData(rdata);
 }
 
-// rebuild whole selection tree
+// rebuild entire tree (bottom-up)
 void SelectionTree::rebuildTree() {
-  if (!root)
-    return;
-
-  queue<SelectionTreeNode *> q;
-  q.push(root);
-  while (!q.empty()) {
-    SelectionTreeNode *node = q.front();
-    q.pop();
-
-    updateWinner(node);
-
-    if (node->getLeftChild())
-      q.push(node->getLeftChild());
-    if (node->getRightChild())
-      q.push(node->getRightChild());
+  for (int i = 0; i < 8; i++) {
+    SelectionTreeNode *cur = run[i];
+    while (cur) {
+      updateWinner(cur);
+      cur = cur->getParent();
+    }
   }
+  updateWinner(root);
 }
