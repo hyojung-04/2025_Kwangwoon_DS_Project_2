@@ -4,7 +4,7 @@ ADD_BP	alex	200	210038	5900
 ADD_BP	ryan	300	220094	8200
 ADD_BP	steven	400	170027	9700
 SEARCH_BP   alex
-SEARCH_BP   c   g
+SEARCH_BP   a   c
 PRINT_BP
 ADD_ST  dept_no 100
 ADD_ST  name    steven

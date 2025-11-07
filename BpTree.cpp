@@ -70,8 +70,10 @@ void BpTree::splitDataNode(BpTreeNode *pDataNode) {
   for (int i = splitIndex; i < (int)keys.size(); i++) {
     string key = keys[i];
     EmployeeData *data = pMap->at(key);
+
+    // ⚠️ Move data ownership
     pNewLeaf->insertDataMap(key, data);
-    pOldLeaf->deleteMap(key);
+    pMap->erase(key); // deleteMap() 대신 erase()만
   }
 
   // Link two leaves
@@ -99,7 +101,14 @@ void BpTree::splitDataNode(BpTreeNode *pDataNode) {
     if (pParentIndex == NULL)
       return;
 
-    pParentIndex->insertIndexMap(sMiddleKey, pNewLeaf);
+    map<string, BpTreeNode *> *parentMap = pParentIndex->getIndexMap();
+    auto it = parentMap->find(sMiddleKey);
+    if (it != parentMap->end()) {
+      deleteTree(it->second);
+      it->second = pNewLeaf;
+    } else {
+      parentMap->insert({sMiddleKey, pNewLeaf});
+    }
     pNewLeaf->setParent(pParentIndex);
 
     // Split parent if needed
@@ -166,7 +175,14 @@ void BpTree::splitIndexNode(BpTreeNode *pIndexNode) {
     if (pParentIndex == NULL)
       return;
 
-    pParentIndex->insertIndexMap(sPromotedKey, pNewIndex);
+    map<string, BpTreeNode *> *parentMap = pParentIndex->getIndexMap();
+    auto it = parentMap->find(sPromotedKey);
+    if (it != parentMap->end()) {
+      deleteTree(it->second);
+      it->second = pNewIndex;
+    } else {
+      parentMap->insert({sPromotedKey, pNewIndex});
+    }
     pNewIndex->setParent(pParentIndex);
 
     if (excessIndexNode(pParentIndex))
@@ -244,12 +260,7 @@ void BpTree::deleteTree(BpTreeNode *pNode) {
   // If it's a data leaf
   BpTreeDataNode *pDataLeaf = dynamic_cast<BpTreeDataNode *>(pNode);
   if (pDataLeaf != NULL) {
-    map<string, EmployeeData *> *pMap = pDataLeaf->getDataMap();
-    for (map<string, EmployeeData *>::iterator it = pMap->begin();
-         it != pMap->end(); ++it)
-      delete it->second;
   } else {
-    // If it's an index node
     BpTreeIndexNode *pIndexNode = dynamic_cast<BpTreeIndexNode *>(pNode);
     if (pIndexNode != NULL) {
       deleteTree(pIndexNode->getMostLeftChild());

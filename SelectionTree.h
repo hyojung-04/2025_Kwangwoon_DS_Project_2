@@ -9,9 +9,13 @@ private:
   SelectionTreeNode *run[8];
 
 public:
-  SelectionTree(std::ofstream &fout) : fout(fout) {}
+  SelectionTree(std::ofstream &fout) : fout(fout) {
+    root = nullptr;
+    for (int i = 0; i < 8; i++)
+      run[i] = nullptr;
+  }
 
-  ~SelectionTree() {}
+  ~SelectionTree() { deleteTree(root); }
 
   void setRoot(SelectionTreeNode *pN) { this->root = pN; }
   SelectionTreeNode *getRoot() { return root; }
@@ -23,4 +27,5 @@ public:
   bool printEmployeeData(int dept_no);
   void updateWinner(SelectionTreeNode *node);
   void rebuildTree();
+  void deleteTree(SelectionTreeNode *node);
 };

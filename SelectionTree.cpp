@@ -32,7 +32,6 @@ void SelectionTree::setTree() {
     level = next;
   }
   root = level.front();
-  rebuildTree(); // initial winner
   updateWinner(root);
 }
 
@@ -168,4 +167,22 @@ void SelectionTree::rebuildTree() {
     }
   }
   updateWinner(root);
+}
+
+void SelectionTree::deleteTree(SelectionTreeNode *node) {
+  if (!node)
+    return;
+
+  // delete children first
+  deleteTree(node->getLeftChild());
+  deleteTree(node->getRightChild());
+
+  // Delete heap if this node has one
+  if (node->getHeap()) {
+    delete node->getHeap();
+    node->setHeap(nullptr);
+  }
+
+  // delete this node
+  delete node;
 }

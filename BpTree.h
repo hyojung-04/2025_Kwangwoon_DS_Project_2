@@ -1,4 +1,4 @@
-//end
+// end
 
 #pragma once
 #ifndef _BpTree_H_
@@ -12,31 +12,29 @@
 
 class BpTree {
 private:
-	BpTreeNode* root;
-	int	order;		// m children
-	ofstream* flog;
+  BpTreeNode *root;
+  int order; // m children
+  ofstream *flog;
 
 public:
-	BpTree(ofstream *fout, int order = 3) {
-		this->root = NULL;
-		this->order = order;
-		this->flog = fout;
-	}
-	
-	~BpTree() {
-		deleteTree(root);
-	}
+  BpTree(ofstream *fout, int order = 3) {
+    this->root = NULL;
+    this->order = order;
+    this->flog = fout;
+  }
 
-	/* essential */
-	bool		Insert(EmployeeData* newData);
-	bool		excessDataNode(BpTreeNode* pDataNode);
-	bool		excessIndexNode(BpTreeNode* pIndexNode);
-	void		splitDataNode(BpTreeNode* pDataNode);
-	void		splitIndexNode(BpTreeNode* pIndexNode);
-	BpTreeNode* getRoot() { return root; }
-	BpTreeNode* searchDataNode(string name);
-	void		searchRange(string start, string end);
-	void 		deleteTree(BpTreeNode* pNode);
+  ~BpTree() { deleteTree(root); }
+
+  /* essential */
+  bool Insert(EmployeeData *newData);
+  bool excessDataNode(BpTreeNode *pDataNode);
+  bool excessIndexNode(BpTreeNode *pIndexNode);
+  void splitDataNode(BpTreeNode *pDataNode);
+  void splitIndexNode(BpTreeNode *pIndexNode);
+  BpTreeNode *getRoot() { return root; }
+  BpTreeNode *searchDataNode(string name);
+  void searchRange(string start, string end);
+  void deleteTree(BpTreeNode *pNode);
 };
 
 #endif

@@ -10,16 +10,17 @@ using namespace std;
 
 void Manager::run(const char *command) {
   this->fin.open(command);
+  this->flog.open("log.txt", ios::out);
 
-  // if command.txt not open
   if (!this->fin.is_open()) {
-    this->flog.open("log.txt", ios::out);
-    if (this->flog.is_open()) {
-      printErrorCode(000);
-    }
+    printErrorCode(800);
     return;
   }
-  this->flog.open("log.txt", ios::out);
+  if (!this->flog.is_open()) {
+    fin.close();
+    return;
+  }
+
   if (!this->flog.is_open()) {
     fin.close();
     return;
