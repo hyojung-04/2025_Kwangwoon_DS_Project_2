@@ -13,14 +13,15 @@ void Manager::run(const char *command) {
 
   // if command.txt not open
   if (!this->fin.is_open()) {
-    this->flog.open("log.txt", ios::out);
+    // must change
+    this->flog.open("log1.txt", ios::out);
     if (this->flog.is_open()) {
       printErrorCode(000);
     }
     return;
   }
-
-  this->flog.open("log.txt", ios::out);
+  // must change
+  this->flog.open("log1.txt", ios::out);
   if (!this->flog.is_open()) {
     fin.close();
     return;
