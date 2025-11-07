@@ -19,7 +19,7 @@ public:
 	Manager(int bpOrder) {		//constructor
 		this->bpOrder=bpOrder;
 		bptree = new BpTree(&flog, bpOrder);
-		stree = new SelectionTree(&flog);
+		stree = new SelectionTree(flog);
 		isLoaded=false;
 	}
 

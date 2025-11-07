@@ -25,4 +25,6 @@ public:
     void UpHeap(int index);
     void DownHeap(int index);
     void ResizeArray();
+    int getdatanum(){ return this->datanum; }
+    EmployeeData** getheapArr(){ return this->heapArr; }
 };

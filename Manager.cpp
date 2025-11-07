@@ -196,37 +196,215 @@ void Manager::LOAD() {
 
 }
 
-void Manager::ADD_BP(string name,int dept_no,int id,int income) {
+void Manager::ADD_BP(string name, int dept_no, int id, int income) {
+    // ... (EmployeeData 생성, bptree->Insert) ...
 
+    // 3. 성공 코드 및 결과 출력
+    printSuccessCode("ADD_BP");
+    flog << name << "/" << dept_no << "/" << id << "/" << income << "\n";
+    flog << "====================\n\n";
 }
+
 
 void Manager::SEARCH_BP_NAME(string name) {
+    // 1. B+ Tree가 비어있는지 확인
+    if (bptree->getRoot() == NULL) {
+        printErrorCode(300); // [cite: 103]
+        return;
+    }
 
+    // 2. 이름이 속한 리프 노드(DataNode) 탐색
+    BpTreeNode* pNode = bptree->searchDataNode(name);
+    BpTreeDataNode* pLeaf = dynamic_cast<BpTreeDataNode*>(pNode);
+
+    if (pLeaf == NULL) { // 혹시 모를 오류 방지
+        printErrorCode(300);
+        return;
+    }
+
+    // 3. 리프 노드의 map에서 정확한 이름 탐색
+    map<string, EmployeeData*>* pMap = pLeaf->getDataMap();
+    auto it = pMap->find(name);
+
+    // 4. 결과 처리
+    if (it == pMap->end()) {
+        // 맵에 이름이 없음
+        printErrorCode(300); // [cite: 103]
+    } else {
+        // 찾았음. 데이터 출력 [cite: 103]
+        EmployeeData* pData = it->second;
+        printSuccessCode("SEARCH_BP");
+        flog << pData->getName() << "/" 
+              << pData->getDeptNo() << "/" 
+              << pData->getID() << "/" 
+              << pData->getIncome() << "\n";
+        flog << "====================\n\n";
+    }
 }
 
-void Manager::SEARCH_BP_RANGE(string start, string end) {
 
+void Manager::SEARCH_BP_RANGE(string start, string end) {
+    // 1. B+ Tree가 비어있는지 확인
+    if (bptree->getRoot() == NULL) {
+        printErrorCode(300); // [cite: 103]
+        return;
+    }
+
+    // 2. 성공 코드 출력
+    printSuccessCode("SEARCH_BP");
+
+    // 3. B+ Tree의 범위 탐색 함수 호출 (이 함수가 flog에 직접 씀)
+    bptree->searchRange(start, end);
+
+    // 4. 꼬리말 추가
+    flog << "====================\n\n";
 }
 
 void Manager::ADD_ST_DEPTNO(int dept_no) {
+    // 1. B+ Tree가 비어있는지 확인
+    if (bptree->getRoot() == NULL) {
+        printErrorCode(500);
+        return;
+    }
 
+    // 2. Selection Tree가 비어있으면 초기화
+    stree->setTree();
+
+    // 3. Leaf 노드로 이동 (가장 왼쪽 리프 찾기)
+    BpTreeNode* pNode = bptree->getRoot();
+    while (pNode && dynamic_cast<BpTreeDataNode*>(pNode) == NULL) {
+        pNode = pNode->getMostLeftChild();
+    }
+
+    if (pNode == NULL) {
+        printErrorCode(500);
+        return;
+    }
+
+    bool found = false;
+    BpTreeDataNode* pLeaf = dynamic_cast<BpTreeDataNode*>(pNode);
+
+    // 4. 모든 leaf 순회
+    while (pLeaf) {
+        map<string, EmployeeData*>* dataMap = pLeaf->getDataMap();
+        for (auto const& [name, data] : *dataMap) {
+            if (data->getDeptNo() == dept_no) {
+                stree->Insert(data);
+                found = true;
+            }
+        }
+        pLeaf = dynamic_cast<BpTreeDataNode*>(pLeaf->getNext());
+    }
+
+    // 5. 결과 출력
+    if (found) {
+        printSuccessCode("ADD_ST");
+    } else {
+        printErrorCode(500);
+    }
 }
+
 
 void Manager::ADD_ST_NAME(string name) {
+    // 1. B+ Tree 비어있으면 에러
+    if (bptree->getRoot() == NULL) {
+        printErrorCode(500);
+        return;
+    }
 
+    // 2. Selection Tree 초기화
+    stree->setTree();
+
+    // 3. 이름이 있는 리프 노드 탐색
+    BpTreeNode* pNode = bptree->searchDataNode(name);
+    BpTreeDataNode* pLeaf = dynamic_cast<BpTreeDataNode*>(pNode);
+
+    if (pLeaf == NULL) {
+        printErrorCode(500);
+        return;
+    }
+
+    // 4. 맵에서 이름 검색
+    map<string, EmployeeData*>* dataMap = pLeaf->getDataMap();
+    auto it = dataMap->find(name);
+
+    if (it == dataMap->end()) {
+        printErrorCode(500);
+        return;
+    }
+
+    // 5. Selection Tree에 삽입
+    stree->Insert(it->second);
+
+    // 6. 성공 출력
+    printSuccessCode("ADD_ST");
 }
 
-void Manager::PRINT_BP() {
 
+void Manager::PRINT_BP() {
+    // 1. B+ Tree가 비어있는지 확인
+    if (bptree->getRoot() == NULL) {
+        printErrorCode(400); // [cite: 105]
+        return;
+    }
+
+    // 2. 성공 코드 출력
+    printSuccessCode("PRINT_BP");
+
+    // 3. 전체 범위로 searchRange 호출
+    //    (시작: 빈 문자열, 끝: ASCII에서 'z'보다 큰 '{' 사용)
+    bptree->searchRange("", "{"); 
+
+    // 4. 꼬리말 추가
+    flog << "====================\n\n";
 }
 
 void Manager::PRINT_ST(int n) {
+    // 1. SelectionTree가 비어있으면 에러
+    if (stree->getRoot() == NULL) {
+        printErrorCode(600);
+        return;
+    }
 
+    // 2. 부서 코드가 유효한지 확인
+    if (n < 100 || n > 800 || n % 100 != 0) {
+        printErrorCode(600);
+        return;
+    }
+
+    // 3. 부서에 해당하는 데이터 출력
+    bool result = stree->printEmployeeData(n);
+
+    if (!result) {
+        printErrorCode(600);
+        return;
+    }
+
+    // 4. 출력 성공 시
+    printSuccessCode("PRINT_ST");
 }
+
 
 void Manager::DELETE() {
+    // 1. SelectionTree 비어있으면 에러
+    if (stree->getRoot() == NULL) {
+        printErrorCode(700);
+        return;
+    }
 
+    // 2. SelectionTree에서 삭제 시도
+    bool result = stree->Delete();
+
+    // 3. 실패 시
+    if (!result) {
+        printErrorCode(700);
+        return;
+    }
+
+    // 4. 성공 시
+    printSuccessCode("DELETE");
 }
+
 
 void Manager::printErrorCode(int n) {
 	flog << "========ERROR========\n";

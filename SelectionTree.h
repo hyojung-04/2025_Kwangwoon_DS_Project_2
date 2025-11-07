@@ -1,15 +1,15 @@
 #pragma once
 #include "SelectionTreeNode.h"
+#include <fstream>
 
 class SelectionTree {
 private:
     SelectionTreeNode* root;
-    ofstream* fout;
+    std::ofstream& fout;
     SelectionTreeNode* run[8];
 
 public:
-    SelectionTree(ofstream* fout) {
-        
+    SelectionTree(std::ofstream& fout) : fout(fout) {
     }
 
     ~SelectionTree() {
