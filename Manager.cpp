@@ -211,6 +211,7 @@ void Manager::SEARCH_BP_NAME(string name) {
   if (it == pMap->end())
     printErrorCode(300);
   else {
+    flog << "========SEARCH_BP========\n";
     EmployeeData *pData = it->second;
     flog << pData->getName() << "/" << pData->getDeptNo() << "/"
          << pData->getID() << "/" << pData->getIncome() << "\n";
@@ -343,6 +344,7 @@ void Manager::PRINT_ST(int n) {
   }
 
   bool result = stree->printEmployeeData(n);
+
   if (!result) {
     printErrorCode(600);
     return;

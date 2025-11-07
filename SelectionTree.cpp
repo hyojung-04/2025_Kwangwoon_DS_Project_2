@@ -113,13 +113,26 @@ bool SelectionTree::printEmployeeData(int dept_no) {
   if (heap->IsEmpty())
     return false;
 
-  // temporary copy for printing (not delete)
+  fout << "========PRINT_ST========\n";
+
+  // Copy all employees into vector
+  vector<EmployeeData *> vec;
   for (int i = 1; i <= heap->getdatanum(); i++) {
-    EmployeeData *p = heap->getheapArr()[i];
+    vec.push_back(heap->getheapArr()[i]);
+  }
+
+  // Sort by income descending
+  sort(vec.begin(), vec.end(), [](EmployeeData *a, EmployeeData *b) {
+    return a->getIncome() > b->getIncome();
+  });
+
+  // Print sorted employees
+  for (auto p : vec) {
     fout << p->getName() << "/" << p->getDeptNo() << "/" << p->getID() << "/"
          << p->getIncome() << "\n";
   }
 
+  fout << "====================\n\n";
   return true;
 }
 
