@@ -261,20 +261,17 @@ void Manager::SEARCH_BP_RANGE(string start, string end) {
 }
 
 void Manager::ADD_ST_DEPTNO(int dept_no) {
-    // 1. B+ Tree가 비어있는지 확인
     if (bptree->getRoot() == NULL) {
         printErrorCode(500);
         return;
     }
 
-    // 2. Selection Tree가 비어있으면 초기화
-    stree->setTree();
+    if (stree->getRoot() == NULL) // only once
+        stree->setTree();
 
-    // 3. Leaf 노드로 이동 (가장 왼쪽 리프 찾기)
     BpTreeNode* pNode = bptree->getRoot();
-    while (pNode && dynamic_cast<BpTreeDataNode*>(pNode) == NULL) {
+    while (pNode && dynamic_cast<BpTreeDataNode*>(pNode) == NULL)
         pNode = pNode->getMostLeftChild();
-    }
 
     if (pNode == NULL) {
         printErrorCode(500);
@@ -284,7 +281,6 @@ void Manager::ADD_ST_DEPTNO(int dept_no) {
     bool found = false;
     BpTreeDataNode* pLeaf = dynamic_cast<BpTreeDataNode*>(pNode);
 
-    // 4. 모든 leaf 순회
     while (pLeaf) {
         map<string, EmployeeData*>* dataMap = pLeaf->getDataMap();
         for (auto const& [name, data] : *dataMap) {
@@ -296,13 +292,59 @@ void Manager::ADD_ST_DEPTNO(int dept_no) {
         pLeaf = dynamic_cast<BpTreeDataNode*>(pLeaf->getNext());
     }
 
-    // 5. 결과 출력
     if (found) {
+        stree->rebuildTree(); // <== added
         printSuccessCode("ADD_ST");
     } else {
         printErrorCode(500);
     }
 }
+
+void Manager::ADD_ST_NAME(string name) {
+    if (bptree->getRoot() == NULL) {
+        printErrorCode(500);
+        return;
+    }
+
+    if (stree->getRoot() == NULL)
+        stree->setTree();
+
+    BpTreeNode* pNode = bptree->searchDataNode(name);
+    BpTreeDataNode* pLeaf = dynamic_cast<BpTreeDataNode*>(pNode);
+
+    if (pLeaf == NULL) {
+        printErrorCode(500);
+        return;
+    }
+
+    map<string, EmployeeData*>* dataMap = pLeaf->getDataMap();
+    auto it = dataMap->find(name);
+    if (it == dataMap->end()) {
+        printErrorCode(500);
+        return;
+    }
+
+    stree->Insert(it->second);
+    stree->rebuildTree(); // <== added
+    printSuccessCode("ADD_ST");
+}
+
+void Manager::DELETE() {
+    if (stree->getRoot() == NULL) {
+        printErrorCode(700);
+        return;
+    }
+
+    bool result = stree->Delete();
+    if (!result) {
+        printErrorCode(700);
+        return;
+    }
+
+    stree->rebuildTree(); // <== added
+    printSuccessCode("DELETE");
+}
+
 
 
 void Manager::ADD_ST_NAME(string name) {
